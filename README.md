@@ -1,2 +1,14 @@
 # orderflow-backend
-Пока пытаюс что то сюда написать потому что нету изменений для коммита первого.
+Проект для реализиции backend логики и REST API.
+
+# установка зависимостей
+pip install requirements.txt
+
+# запуск приложения
+## локальный запуск
+fatapi dev
+## запуск напрямую
+uvicorn main:app --reload
+
+# запуск тестов
+pytest app/test_health.py
