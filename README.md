@@ -11,4 +11,4 @@ fatapi dev
 uvicorn main:app --reload
 
 # запуск тестов
-pytest app/test_health.py
+pytest
