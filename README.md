@@ -1,14 +1,17 @@
 # orderflow-backend
-Проект для реализиции backend логики и REST API.
+Проект для реализации backend логики и REST API.
 
 # установка зависимостей
-pip install requirements.txt
+pip install -r requirements.txt
 
 # запуск приложения
 ## локальный запуск
-fatapi dev
+fastapi dev app/main.py
 ## запуск напрямую
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 
 # запуск тестов
 pytest
+
+# проверка стандартов написания кода
+ruff check .
