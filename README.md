@@ -11,7 +11,7 @@ fastapi dev app/main.py
 uvicorn app.main:app --reload
 
 # запуск тестов
-pytest
+pytest -m pytest
 
 # проверка стандартов написания кода
 ruff check .
