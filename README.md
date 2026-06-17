@@ -22,3 +22,11 @@ docker run --rm -p 8000:8000 orderflow-backend
 
 # проверка запуска Docker
 curl http://localhost:8000/health
+
+# запуск приложения и PostgreSQL через Docker Compose
+docker compose up --build
+# запуск в фоновом режиме
+docker compose up --buid -d
+# остановка контейнероа
+docker compose down
+
