@@ -26,7 +26,7 @@ curl http://localhost:8000/health
 # запуск приложения и PostgreSQL через Docker Compose
 docker compose up --build
 # запуск в фоновом режиме
-docker compose up --buid -d
+docker compose up --build -d
 # остановка контейнероа
 docker compose down
 
