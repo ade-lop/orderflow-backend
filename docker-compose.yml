@@ -1,0 +1,23 @@
+services:
+      app:
+        build: .
+        ports: 
+            - "8000:8000"
+        #environment: # пока нету
+        depends_on:
+            - db
+        #volume: # пока не нужен
+
+      db:
+        image: postgres:18
+        environment:
+          POSTGRES_USER: orderflow
+          POSTGRES_PASSWORD: orderflow_password
+          POSTGRES_DB: orderflow
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgress_data:/var/lib/postgresql
+    
+volumes:
+    postgress_data:
