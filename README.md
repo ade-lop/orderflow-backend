@@ -27,6 +27,6 @@ curl http://localhost:8000/health
 docker compose up --build
 # запуск в фоновом режиме
 docker compose up --build -d
-# остановка контейнероа
+# остановка контейнеров
 docker compose down
 
