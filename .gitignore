@@ -218,5 +218,6 @@ __marimo__/
 .streamlit/secrets.toml
 
 
-# Docker notes
+# Notes
 docker_example.txt
+conf_project.txt

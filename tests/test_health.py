@@ -9,3 +9,6 @@ def test_health() -> None:
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+def test_app_uses_settings_tittle() -> None:
+    assert app.title == "Orderflow-backend"
