@@ -29,4 +29,15 @@ docker compose up --build
 docker compose up --build -d
 # остановка контейнеров
 docker compose down
+# проверка конфигурации Compose:
+docker compose config
+
+# DATABASE_URL
+## для локального запуска с Mac:
+DATABASE_URL=postgresql+psycopg://orderflow:orderflow_password@localhost:55432/orderflow
+## для приложения внутри Docker Compose:
+DATABASE_URL=postgresql+psycopg://orderflow:orderflow_password@db:5432/orderflow
+
+Внутри Compose приложение обращается к PostgreSQL по имени сервиса 'db' и внутреннему порту '5432' - 'db:5432'.
+С Mac подключение идет через опубликованный порт 'localhost:55432'.
 

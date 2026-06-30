@@ -3,7 +3,10 @@ services:
         build: .
         ports: 
             - "8000:8000"
-        #environment: # пока нету
+        environment:
+            APP_NAME: Orderflow-backend
+            ENVIRONMENT: local
+            DATABASE_URL: postgresql+psycopg://orderflow:orderflow_password@db:5432/orderflow
         depends_on:
             - db
         #volume: # пока не нужен
@@ -15,9 +18,9 @@ services:
           POSTGRES_PASSWORD: orderflow_password
           POSTGRES_DB: orderflow
         ports:
-            - "5432:5432"
+            - "55432:5432"
         volumes:
-            - postgres_data:/var/lib/postgresql
+            - postgres_data:/var/lib/postgresql/data
     
 volumes:
     postgres_data:
