@@ -2,3 +2,6 @@ fastapi[standard]==0.137.1
 httpx==0.28.1
 pytest==9.1.0
 ruff==0.15.17
+sqlalchemy
+psycopg
+alembic
