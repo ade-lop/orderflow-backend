@@ -29,6 +29,12 @@ docker compose up --build
 docker compose up --build -d
 # остановка контейнеров
 docker compose down
+
+# Если хочешь удалить контейнеры и данные БД, нужна команда:
+# -v удаляет volumes, объявленные в Compose. Это разрушительная команда: база будет очищена.
+docker compose down -v
+
+
 # проверка конфигурации Compose:
 docker compose config
 
