@@ -13,6 +13,7 @@ SessionLocal = sessionmaker(bind=engine)
 
 
 def get_db() -> Generator[Session]:
+    """FastAPI dependency для endpoint/request."""
     db = SessionLocal()
     try:
         yield db
