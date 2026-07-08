@@ -1,7 +1,18 @@
 """
-test_orders_db.py
-Это уже integration test
-Зависит от db и примененных миграций."""
+tests/test_orders_db.py
+Это уже integration test.
+Зависит от db и примененных миграций.
+
+доказывает, что:
+- ORM model создаётся,
+- SessionLocal работает,
+- engine подключается к PostgreSQL,
+- миграция реально создала таблицу,
+- INSERT проходит,
+- server defaults работают,
+- SELECT по primary key работает,
+- cleanup удаляет тестовую запись.
+"""
 from app.db.session import SessionLocal
 from app.models.order import Order
 
