@@ -1,49 +1,171 @@
 # orderflow-backend
-Проект для реализации backend логики и REST API.
 
-# установка зависимостей
+Проект для реализации backend-логики и REST API.
+
+## Установка зависимостей
+
+```bash
 pip install -r requirements.txt
+```
 
-# запуск приложения
-## локальный запуск
+## Локальный запуск приложения
+
+```bash
 fastapi dev app/main.py
-## запуск напрямую
+```
+
+Альтернативный запуск:
+
+```bash
 uvicorn app.main:app --reload
+```
 
-# запуск тестов
-python -m pytest
+Для локального запуска приложению нужен `DATABASE_URL`, например:
 
-# проверка стандартов написания кода
-ruff check .
-
-# сборка и запуск контейнера Docker
-docker build -t orderflow-backend .
-docker run --rm -p 8000:8000 orderflow-backend
-
-# проверка запуска Docker
-curl http://localhost:8000/health
-
-# запуск приложения и PostgreSQL через Docker Compose
-docker compose up --build
-# запуск в фоновом режиме
-docker compose up --build -d
-# остановка контейнеров
-docker compose down
-
-# Если хочешь удалить контейнеры и данные БД, нужна команда:
-# -v удаляет volumes, объявленные в Compose. Это разрушительная команда: база будет очищена.
-docker compose down -v
-
-
-# проверка конфигурации Compose:
-docker compose config
-
-# DATABASE_URL
-## для локального запуска с Mac:
+```text
 DATABASE_URL=postgresql+psycopg://orderflow:orderflow_password@localhost:55432/orderflow
-## для приложения внутри Docker Compose:
+```
+
+## Тесты
+
+```bash
+python -m pytest
+```
+
+## Проверка качества кода
+
+```bash
+ruff check .
+```
+
+## Docker
+
+Сборка образа:
+
+```bash
+docker build -t orderflow-backend .
+```
+
+Запуск только app-контейнера возможен только при доступной базе данных и переданном `DATABASE_URL`.
+
+Основной способ запуска приложения вместе с PostgreSQL:
+
+```bash
+docker compose up --build
+```
+
+Запуск в фоновом режиме:
+
+```bash
+docker compose up --build -d
+```
+
+Остановка контейнеров:
+
+```bash
+docker compose down
+```
+
+Остановка контейнеров с удалением volume БД:
+
+```bash
+docker compose down -v
+```
+
+`docker compose down -v` удаляет данные PostgreSQL. Это разрушительная команда.
+
+Проверка конфигурации Compose:
+
+```bash
+docker compose config
+```
+
+## Проверка приложения
+
+```bash
+curl http://localhost:8000/health
+```
+
+Создание order:
+
+```bash
+curl -X POST http://localhost:8000/orders \
+  -H "Content-Type: application/json" \
+  -d '{"title": "First API order"}'
+```
+
+Получение order по id:
+
+```bash
+curl http://localhost:8000/orders/1
+```
+
+Получение списка orders:
+
+```bash
+curl http://localhost:8000/orders
+```
+
+## DATABASE_URL
+
+Для локального запуска с Mac:
+
+```text
+DATABASE_URL=postgresql+psycopg://orderflow:orderflow_password@localhost:55432/orderflow
+```
+
+Для приложения внутри Docker Compose:
+
+```text
 DATABASE_URL=postgresql+psycopg://orderflow:orderflow_password@db:5432/orderflow
+```
 
-Внутри Compose приложение обращается к PostgreSQL по имени сервиса 'db' и внутреннему порту '5432' - 'db:5432'.
-С Mac подключение идет через опубликованный порт 'localhost:55432'.
+Внутри Compose приложение обращается к PostgreSQL по имени сервиса `db` и внутреннему порту `5432`: `db:5432`.
 
+С Mac подключение идёт через опубликованный порт `localhost:55432`.
+
+## Alembic
+
+Проверить текущую revision БД:
+
+```bash
+python -m alembic current
+```
+
+Применить миграции:
+
+```bash
+python -m alembic upgrade head
+```
+
+Создать новую migration после изменения ORM-моделей:
+
+```bash
+python -m alembic revision --autogenerate -m "message"
+```
+
+## Структура проекта
+
+### `app/api/routes/orders.py`
+
+FastAPI endpoints для orders:
+
+* `POST /orders` — создать новый order;
+* `GET /orders/{order_id}` — получить order по id;
+* `GET /orders` — получить список orders.
+
+### `app/schemas/order.py`
+
+Pydantic-схемы:
+
+* `OrderCreate` — данные, которые клиент может отправить для создания order;
+* `OrderRead` — данные об order, которые API возвращает клиенту.
+
+### `tests/test_orders_api.py`
+
+API-тесты для orders endpoints:
+
+* создание order;
+* получение существующего order;
+* получение отсутствующего order;
+* получение списка orders.
