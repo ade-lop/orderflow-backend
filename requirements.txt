@@ -3,5 +3,5 @@ httpx==0.28.1
 pytest==9.1.0
 ruff==0.15.17
 sqlalchemy==2.0.51
-psycopg==3.3.4
+psycopg[binary]==3.3.4
 alembic==1.18.5
