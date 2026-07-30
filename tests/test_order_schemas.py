@@ -15,7 +15,7 @@ def test_empty_update_order_schema():
     assert update_data == {}
 
 
-def test_partlial_update_order_schema():
+def test_partial_update_order_schema():
     order_update = OrderUpdate(title="Updated")
 
     update_data = order_update.model_dump(exclude_unset=True)

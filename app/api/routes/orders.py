@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.order import Order
-from app.schemas.order import OrderCreate, OrderRead
+from app.schemas.order import OrderCreate, OrderRead, OrderUpdate
 
 router = APIRouter(
     prefix="/orders",
@@ -60,3 +60,48 @@ def get_order(
         raise HTTPException(status_code=404, detail="Order not found")
 
     return order
+
+
+@router.patch(
+    "/{order_id}",
+    response_model=OrderRead,
+)
+def update_order(
+    order_id: int,
+    order_update: OrderUpdate,
+    db: Annotated[Session, Depends(get_db)],
+) -> Order:
+    order = db.get(Order, order_id)
+
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    update_data = order_update.model_dump(exclude_unset=True)
+
+    for field, value in update_data.items():
+        setattr(order, field, value)
+
+    db.commit()
+    db.refresh(order)
+
+    return order
+
+
+@router.delete(
+    "/{order_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_order(
+    order_id: int,
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    order = db.get(Order, order_id)
+    if order is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found",
+        )
+
+    db.delete(order)
+
+    db.commit()
