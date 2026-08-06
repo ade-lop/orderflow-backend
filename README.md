@@ -66,13 +66,13 @@ docker compose up --build -d
 docker compose down
 ```
 
-Остановка контейнеров с удалением volume БД:
+Остановка контейнеров с УДАЛЕНИЕМ volume БД:
 
 ```bash
 docker compose down -v
 ```
 
-`docker compose down -v` удаляет данные PostgreSQL. Это разрушительная команда.
+`docker compose down -v` УДАЛЯЕТ данные PostgreSQL. Это разрушительная команда.
 
 Проверка конфигурации Compose:
 
