@@ -10,32 +10,38 @@ os.environ["DATABASE_URL"] = (
 os.environ["ENVIRONMENT"] = "test"
 
 
-
-from collections.abc import Generator
-
 import pytest
 from sqlalchemy.orm import Session
 
-from app.db.session import SessionLocal
-from app.models import Order
+from app.db.session import engine, get_db
+from app.main import app
 
 
 @pytest.fixture
-def db_session() -> Generator[tuple[Session, list[int]]]:
-    db = SessionLocal()
-    created_ids = []
+def db_session():
+    connection = engine.connect()
+    outer_transaction = connection.begin()
+
+    session = Session(
+        bind=connection,
+        join_transaction_mode="create_savepoint",
+    )
+    try:
+        yield session
+    finally:
+        session.close()
+        outer_transaction.rollback()
+        connection.close()
+
+
+@pytest.fixture
+def api_db_override(db_session):
+    def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
 
     try:
-        yield db, created_ids
-
+        yield
     finally:
-        try:
-            for order_id in created_ids:
-                single_order = db.get(Order, order_id)
-
-                if single_order is not None:
-                    db.delete(single_order)
-
-            db.commit()
-        finally:
-            db.close()
+        app.dependency_overrides.pop(get_db, None)

@@ -9,8 +9,8 @@ from app.models.order import Order
 client = TestClient(app)
 
 
-def test_create_order(db_session) -> None:
-    db, created_ids = db_session
+def test_create_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "test_title"
@@ -22,7 +22,6 @@ def test_create_order(db_session) -> None:
     response_data = response.json()
 
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     assert response_data["title"] == "test_title"
     assert created_id is not None
@@ -33,8 +32,8 @@ def test_create_order(db_session) -> None:
     assert test_order is not None
 
 
-def test_get_existing_order(db_session) -> None:
-    db, created_ids = db_session
+def test_get_existing_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "new_existing_order"
@@ -46,7 +45,6 @@ def test_get_existing_order(db_session) -> None:
     response_data = response.json()
 
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     response = client.get(f"/orders/{created_id}")
     assert response.status_code == 200
@@ -61,15 +59,13 @@ def test_get_existing_order(db_session) -> None:
     assert test_order is not None
 
 
-def test_get_missing_order() -> None:
+def test_get_missing_order(api_db_override) -> None:
     response = client.get("/orders/9999999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Order not found"}
 
 
-def test_list_orders(db_session) -> None:
-    _, created_ids = db_session
-
+def test_list_orders(api_db_override) -> None:
     payload = {"title": "for_list_order"}
 
     response = client.post("/orders", json=payload)
@@ -77,7 +73,6 @@ def test_list_orders(db_session) -> None:
 
     response_data = response.json()
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     response = client.get("/orders")
     assert response.status_code == 200
@@ -91,8 +86,8 @@ def test_list_orders(db_session) -> None:
     )
 
 
-def test_partial_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_partial_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "title_to_update",
@@ -103,7 +98,6 @@ def test_partial_update_order(db_session) -> None:
     response_data = response.json()
     created_title = response_data["title"]
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     created_order = db.get(Order, created_id)
     assert created_order is not None
@@ -127,8 +121,8 @@ def test_partial_update_order(db_session) -> None:
     assert response_updated_data["status"] == "canceled"
 
 
-def test_update_all_allowed_order_fields(db_session) -> None:
-    db, created_ids = db_session
+def test_update_all_allowed_order_fields(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "for_full_upd_title"
@@ -143,7 +137,6 @@ def test_update_all_allowed_order_fields(db_session) -> None:
     response_data = response.json()
     created_id = response_data["id"]
 
-    created_ids.append(created_id)
     created_order = db.get(Order, created_id)
     assert created_order is not None
 
@@ -170,8 +163,8 @@ def test_update_all_allowed_order_fields(db_session) -> None:
     assert created_order.status == "processing"
 
 
-def test_invalid_status_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_invalid_status_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "next order",
@@ -186,7 +179,6 @@ def test_invalid_status_update_order(db_session) -> None:
     created_title = response_data["title"]
     created_status = response_data["status"]
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     created_order = db.get(Order, created_id)
     assert created_order is not None
@@ -205,7 +197,7 @@ def test_invalid_status_update_order(db_session) -> None:
     assert created_order.status == created_status
 
 
-def test_update_missing_order() -> None:
+def test_update_missing_order(api_db_override) -> None:
     valid_payload = {
         "status": "completed",
     }
@@ -219,8 +211,8 @@ def test_update_missing_order() -> None:
     assert response_data == {"detail": "Order not found"}
 
 
-def test_empty_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_empty_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "new order",
@@ -233,7 +225,6 @@ def test_empty_update_order(db_session) -> None:
 
     response_data = response.json()
     created_id = response_data["id"]
-    created_ids.append(created_id)
     created_title = response_data["title"]
     created_status = response_data["status"]
 
@@ -258,8 +249,8 @@ def test_empty_update_order(db_session) -> None:
     assert created_order.status == created_status
 
 
-def test_delete_order(db_session) -> None:
-    db, created_ids = db_session
+def test_delete_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "Order to delete",
@@ -272,7 +263,6 @@ def test_delete_order(db_session) -> None:
 
     response_data = response.json()
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     created_order = db.get(Order, created_id)
     assert created_order is not None
@@ -293,14 +283,14 @@ def test_delete_order(db_session) -> None:
     assert response.json() == {"detail": "Order not found"}
 
 
-def test_delete_missing_order() -> None:
+def test_delete_missing_order(api_db_override) -> None:
     response = client.delete("/orders/99999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Order not found"}
 
 
-def test_normalize_title_create_order(db_session) -> None:
-    db, created_ids = db_session
+def test_normalize_title_create_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {
         "title": "  API normalized title  "
@@ -314,7 +304,6 @@ def test_normalize_title_create_order(db_session) -> None:
 
     response_data = response.json()
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     assert response_data["title"] == "API normalized title"
 
@@ -323,7 +312,7 @@ def test_normalize_title_create_order(db_session) -> None:
     assert created_order.title == "API normalized title"
 
 
-def test_empty_title_create_order() -> None:
+def test_empty_title_create_order(api_db_override) -> None:
     payload = {"title": ""}
 
     response = client.post(
@@ -333,7 +322,7 @@ def test_empty_title_create_order() -> None:
     assert response.status_code == 422
 
 
-def test_whitespace_title_create_order() -> None:
+def test_whitespace_title_create_order(api_db_override) -> None:
     payload = {"title": "  "}
     response = client.post(
         "/orders",
@@ -342,7 +331,7 @@ def test_whitespace_title_create_order() -> None:
     assert response.status_code == 422
 
 
-def test_over_length_title_create_order() -> None:
+def test_over_length_title_create_order(api_db_override) -> None:
     overlength_title = "a" * 256
 
     payload = {"title": overlength_title}
@@ -352,8 +341,8 @@ def test_over_length_title_create_order() -> None:
     )
     assert response.status_code == 422
 
-def test_max_length_title_create_order(db_session) -> None:
-    db, created_ids = db_session
+def test_max_length_title_create_order(db_session, api_db_override) -> None:
+    db = db_session
 
     max_length_title = "a" * 255
     payload = {"title": max_length_title}
@@ -366,15 +355,14 @@ def test_max_length_title_create_order(db_session) -> None:
     response_data = response.json()
     assert response_data["title"] == max_length_title
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     created_order = db.get(Order, created_id)
     assert created_order is not None
     assert created_order.title == max_length_title
 
 
-def test_normalize_title_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_normalize_title_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {"title": "valid title"}
     response = client.post(
@@ -385,7 +373,6 @@ def test_normalize_title_update_order(db_session) -> None:
 
     response_data = response.json()
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     created_order = db.get(Order, created_id)
     assert created_order is not None
@@ -413,8 +400,8 @@ def test_normalize_title_update_order(db_session) -> None:
     assert updated_order.title == updated_title
 
 
-def test_whitespace_title_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_whitespace_title_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {"title": "valid title"}
     response = client.post(
@@ -426,7 +413,6 @@ def test_whitespace_title_update_order(db_session) -> None:
     response_data = response.json()
     created_title = response_data["title"]
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     created_order = db.get(Order, created_id)
 
@@ -441,8 +427,8 @@ def test_whitespace_title_update_order(db_session) -> None:
     assert created_order.title == created_title
 
 
-def test_overlength_title_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_overlength_title_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {"title": "valid title"}
     response = client.post(
@@ -454,7 +440,6 @@ def test_overlength_title_update_order(db_session) -> None:
     response_data = response.json()
     created_title = response_data["title"]
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     overlength_title = "a" * 256
     update_payload = {"title": overlength_title}
@@ -470,8 +455,8 @@ def test_overlength_title_update_order(db_session) -> None:
     assert created_order.title == created_title
 
 
-def test_max_length_title_update_order(db_session) -> None:
-    db, created_ids = db_session
+def test_max_length_title_update_order(db_session, api_db_override) -> None:
+    db = db_session
 
     payload = {"title": "valid length title"}
     response = client.post(
@@ -482,7 +467,6 @@ def test_max_length_title_update_order(db_session) -> None:
 
     response_data = response.json()
     created_id = response_data["id"]
-    created_ids.append(created_id)
 
     max_length_title = "a" * 255
     update_payload = {"title": max_length_title}
