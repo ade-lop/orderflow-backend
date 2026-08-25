@@ -13,8 +13,8 @@ from decimal import Decimal
 
 import pytest
 from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload, joinedload
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload, selectinload
 
 from app.models.order import Order
 from app.models.order_item import OrderItem
