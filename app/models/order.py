@@ -2,11 +2,15 @@
 models/order.py
 """
 import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import CheckConstraint, DateTime, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+
+if TYPE_CHECKING:
+    from app.models.order_item import OrderItem
 
 
 class Order(Base):
@@ -28,15 +32,19 @@ class Order(Base):
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(255))
 
     status: Mapped[str] = mapped_column(
         String(30),
-        nullable=False,
         server_default="new"
     )
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),
-        nullable=False,
         server_default=func.now()
+    )
+
+    items: Mapped[list[OrderItem]] = relationship(
+        back_populates="order",
+        passive_deletes=True,
+        cascade="all, delete-orphan",
     )
