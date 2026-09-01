@@ -40,7 +40,8 @@ class OrderItem(Base):
         ForeignKey(
             "orders.id",
             ondelete="CASCADE"
-        )
+        ),
+        index=True,
     )
     product_name: Mapped[str] = mapped_column(String(400))
     quantity: Mapped[int] = mapped_column()
