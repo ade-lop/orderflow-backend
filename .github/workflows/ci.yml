@@ -1,0 +1,17 @@
+name: CI/Base setup
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: python --version
+      - run: pip install -r requirements.txt
