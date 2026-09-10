@@ -4,7 +4,9 @@ schemas/order.py
 import datetime
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+
+from app.schemas.order_item import OrderItemCreate, OrderItemRead
 
 OrderTitle = Annotated[
     str,
@@ -17,9 +19,19 @@ OrderTitle = Annotated[
 
 OrderStatus = Literal["processing", "completed", "new", "canceled"]
 
+Items = Annotated[
+    list[OrderItemCreate],
+    Field(min_length=1),
+]
+
 
 class OrderCreate(BaseModel):
     title: OrderTitle
+
+
+class OrderCreateWithItems(BaseModel):
+    title: OrderTitle
+    items: Items
 
 
 class OrderRead(BaseModel):
@@ -29,6 +41,10 @@ class OrderRead(BaseModel):
     created_at: datetime.datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OrderWithItemsRead(OrderRead):
+    items: list[OrderItemRead]
 
 
 class OrderUpdate(BaseModel):

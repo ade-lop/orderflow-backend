@@ -2,11 +2,12 @@
 test_order_schemas.py
 """
 import datetime
+from decimal import Decimal
 
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.order import OrderCreate, OrderRead, OrderUpdate
+from app.schemas.order import OrderCreate, OrderCreateWithItems, OrderRead, OrderUpdate
 
 
 def test_empty_update_order_schema():
@@ -119,4 +120,38 @@ def test_invalid_status_read_schema():
             title="Test order",
             status="cool",
             created_at=datetime.datetime.now(datetime.UTC),
+        )
+
+
+def test_valid_order_create_with_items():
+    list_of_valid_items = [
+        {
+            "product_name": "Valid Item",
+            "quantity": 1,
+            "unit_price": "10.00"
+        }
+    ]
+    create_order_with_items = OrderCreateWithItems.model_validate(
+        {
+            "title": "Valid order with items",
+            "items": list_of_valid_items,
+        }
+    )
+
+    assert create_order_with_items.title == "Valid order with items"
+    assert len(create_order_with_items.items) == 1
+    assert create_order_with_items.items[0].product_name == "Valid Item"
+    assert create_order_with_items.items[0].quantity == 1
+    assert create_order_with_items.items[0].unit_price == Decimal("10.00")
+
+
+def test_empty_order_create_with_items():
+    empty_list_o_items = []
+
+    with pytest.raises(ValidationError):
+        OrderCreateWithItems.model_validate(
+            {
+                "title": "Invalid order with empty items",
+                "items": empty_list_o_items,
+            }
         )

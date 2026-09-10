@@ -12,10 +12,14 @@ tests/test_orders_db.py
 - SELECT по primary key работает,
 - cleanup откатывает outer_transaction
 """
+from decimal import Decimal
+
 import pytest
-from sqlalchemy.exc import DataError, IntegrityError
+from sqlalchemy import select
+from sqlalchemy.exc import DataError, IntegrityError, PendingRollbackError
 
 from app.models.order import Order
+from app.models.order_item import OrderItem
 
 
 def test_create_and_read_order(db_session):
@@ -91,3 +95,34 @@ def test_overlength_title(db_session):
         db.flush()
 
     db.rollback()
+
+
+def test_failed_session_create_order_with_items(db_session):
+    db = db_session
+
+    order = Order(title="Order failed session M10")
+    db.add(order)
+    db.flush()
+
+    order_id = order.id
+
+    order_item = OrderItem(
+        order_id=order_id,
+        product_name="item A",
+        quantity=0,
+        unit_price=Decimal("20.00"),
+    )
+    db.add(order_item)
+
+    with pytest.raises(IntegrityError):
+        db.flush()
+
+    with pytest.raises(PendingRollbackError):
+        db.execute(select(Order))
+
+    db.rollback()
+    result = db.execute(
+        select(Order)
+        .where(Order.title == "Order failed session M10")
+    )
+    assert result.scalar_one_or_none() is None

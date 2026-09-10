@@ -1,10 +1,16 @@
 """
 test_orders_api.py
 """
+import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from app.api.routes.orders import create_order_with_items
 from app.main import app
 from app.models.order import Order
+from app.schemas.order import OrderCreateWithItems
+from app.schemas.order_item import OrderItemCreate
 
 client = TestClient(app)
 
@@ -482,3 +488,90 @@ def test_max_length_title_update_order(db_session, api_db_override) -> None:
 
     assert response.json()["title"] == max_length_title
     assert created_order.title == max_length_title
+
+
+def test_create_order_with_items(db_session, api_db_override) -> None:
+    db = db_session
+
+    items_list = [
+        {
+            "product_name": "Keyboard",
+            "quantity": 1,
+            "unit_price": "10.00",
+        },
+        {
+            "product_name": "Mouse",
+            "quantity": 1,
+            "unit_price": "20.00",
+        }
+    ]
+    payload = {
+        "title": "Order with items",
+        "items": items_list
+    }
+    response = client.post(
+        "/orders/full",
+        json=payload,
+    )
+    assert response.status_code == 201
+
+    assert response.json()["id"] is not None
+    order_id = response.json()["id"]
+
+    assert response.json()["title"] == "Order with items"
+    assert response.json()["status"] == "new"
+
+    assert len(response.json()["items"]) == 2
+
+    response_data = response.json()
+    actual_items = {
+        (
+            item["product_name"],
+            item["quantity"],
+            item["unit_price"],
+        )
+        for item in response_data["items"]
+    }
+    assert actual_items == {
+        ("Keyboard", 1, "10.00"),
+        ("Mouse", 1, "20.00"),
+    }
+
+    order = db.get(Order, order_id)
+    assert order is not None
+    assert len(order.items) == 2
+
+
+def test_invalid_create_order_with_items(db_session, api_db_override) -> None:
+    db = db_session
+
+    valid_item = OrderItemCreate(
+        product_name="Keyboard",
+        quantity=1,
+        unit_price="10.00",
+    )
+    odd_item = OrderItemCreate.model_construct(
+        product_name="Mouse",
+        quantity=0,
+        unit_price="20.00",
+    )
+
+    order_with_items = OrderCreateWithItems(
+        title="Rollback M10 test order",
+        items=[
+            valid_item,
+            odd_item,
+        ],
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        create_order_with_items(order_with_items, db)
+
+    assert exc_info.value.status_code == 409
+    assert exc_info.value.detail == "Database integrity conflict"
+
+    stmt = select(Order).where(
+        Order.title == "Rollback M10 test order"
+    )
+    result = db.execute(stmt).scalar_one_or_none()
+    assert result is None
