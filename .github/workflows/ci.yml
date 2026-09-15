@@ -1,0 +1,44 @@
+name: CI/Base setup
+
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: "postgresql+psycopg://orderflow:orderflow_password@localhost:5432/orderflow_test"
+      TEST_DATABASE_URL: "postgresql+psycopg://orderflow:orderflow_password@localhost:5432/orderflow_test"
+      ENVIRONMENT: test
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: orderflow
+          POSTGRES_PASSWORD: orderflow_password
+          POSTGRES_DB: orderflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U orderflow -d orderflow_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: python --version
+      - run: pip install -r requirements.txt
+      - run: alembic upgrade head
+      - run: ruff check .
+      - run: python -m pytest
+      - run: python -m pytest tests/concurrency.py
+      - run: python -m pytest tests/query_performance.py
