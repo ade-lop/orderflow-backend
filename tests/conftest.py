@@ -1,12 +1,17 @@
 """
 tests/conftest.py
 """
+# ruff: noqa: E402
+
 import os
 
-os.environ["DATABASE_URL"] = (
+test_database_url = os.getenv(
+    "TEST_DATABASE_URL",
     "postgresql+psycopg://orderflow:orderflow_password"
-    "@localhost:55432/orderflow_test"
+    "@localhost:55432/orderflow_test",
 )
+
+os.environ["DATABASE_URL"] = test_database_url
 os.environ["ENVIRONMENT"] = "test"
 
 
