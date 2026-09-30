@@ -14,12 +14,7 @@ from app.schemas.order import (
     OrderUpdate,
     OrderWithItemsRead,
 )
-from app.services.orders import (
-    OrderCreationError,
-)
-from app.services.orders import (
-    create_order_with_items as service_create_order_with_items,
-)
+from app.services import orders as order_service
 
 router = APIRouter(
     prefix="/orders",
@@ -130,10 +125,10 @@ def create_order_with_items(
     db: Annotated[Session, Depends(get_db)],
 ) -> Order:
     try:
-        order = service_create_order_with_items(db, order_in)
+        order = order_service.create_order_with_items(db, order_in)
         return order
 
-    except OrderCreationError as exc:
+    except order_service.OrderCreationError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Database integrity conflict"
