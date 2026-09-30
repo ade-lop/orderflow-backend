@@ -3,12 +3,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.order import Order
-from app.models.order_item import OrderItem
 from app.schemas.order import (
     OrderCreate,
     OrderCreateWithItems,
@@ -16,6 +14,7 @@ from app.schemas.order import (
     OrderUpdate,
     OrderWithItemsRead,
 )
+from app.services import orders as order_service
 
 router = APIRouter(
     prefix="/orders",
@@ -126,28 +125,10 @@ def create_order_with_items(
     db: Annotated[Session, Depends(get_db)],
 ) -> Order:
     try:
-        order = Order(title=order_in.title)
-
-        db.add(order)
-        db.flush()
-        order_id = order.id
-
-        for item_in in order_in.items:
-            order_item = OrderItem(
-                order_id=order_id,
-                product_name=item_in.product_name,
-                quantity=item_in.quantity,
-                unit_price=item_in.unit_price
-            )
-            db.add(order_item)
-
-        db.flush()
-        db.commit()
-
+        order = order_service.create_order_with_items(db, order_in)
         return order
 
-    except IntegrityError as exc:
-        db.rollback()
+    except order_service.OrderCreationError as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Database integrity conflict"
